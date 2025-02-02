@@ -5,11 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Enhanced Scientific Calculator</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    /* (Styling remains unchanged.) */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: "Segoe UI", sans-serif;
       background: linear-gradient(135deg, #e2e2e2, #f9f9f9);
@@ -20,13 +17,7 @@
       padding: 20px;
       user-select: none;
     }
-    /* Container to hold both the calculator and instructions side by side */
-    .calc-container {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
+    .calc-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
     .calculator {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
@@ -48,11 +39,7 @@
       background: #e5e5e5;
       color: #333;
     }
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-    }
+    .buttons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
     button {
       padding: 15px;
       font-size: 18px;
@@ -62,24 +49,14 @@
       cursor: pointer;
       transition: background 0.2s, transform 0.1s;
     }
-    button:active {
-      transform: scale(0.95);
-    }
+    button:active { transform: scale(0.95); }
     button.operator {
       background: #0078d7;
       color: white;
     }
-    button.operator:hover {
-      background: #005a9e;
-    }
-    button.function {
-      background: #e1e1e1;
-      color: #333;
-    }
-    button.wide {
-      grid-column: span 2;
-    }
-    /* History panel styling */
+    button.operator:hover { background: #005a9e; }
+    button.function { background: #e1e1e1; color: #333; }
+    button.wide { grid-column: span 2; }
     #history {
       position: absolute;
       top: 10px;
@@ -92,21 +69,14 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.2);
       width: 200px;
     }
-    #history h3 {
-      margin-bottom: 10px;
-      font-size: 18px;
-      text-align: center;
-    }
+    #history h3 { margin-bottom: 10px; font-size: 18px; text-align: center; }
     .history-item {
       cursor: pointer;
       padding: 5px;
       border-bottom: 1px solid #ccc;
       font-size: 14px;
     }
-    .history-item:hover {
-      background: #f0f0f0;
-    }
-    /* Instructions panel styling */
+    .history-item:hover { background: #f0f0f0; }
     #instructions {
       background: rgba(255, 255, 255, 0.95);
       border-radius: 10px;
@@ -116,21 +86,9 @@
       overflow-y: auto;
       max-height: 80vh;
     }
-    #instructions h2 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    #instructions h3 {
-      margin: 10px 0 5px;
-      font-size: 16px;
-      text-decoration: underline;
-    }
-    #instructions p {
-      font-size: 14px;
-      line-height: 1.4;
-      margin-bottom: 10px;
-      text-align: justify;
-    }
+    #instructions h2 { text-align: center; margin-bottom: 10px; }
+    #instructions h3 { margin: 10px 0 5px; font-size: 16px; text-decoration: underline; }
+    #instructions p { font-size: 14px; line-height: 1.4; margin-bottom: 10px; text-align: justify; }
   </style>
 </head>
 <body>
@@ -156,22 +114,21 @@
         <!-- Advanced Functions Row -->
         <button class="function" onclick="appendValue('ln(')">ln</button>
         <button class="function" onclick="appendValue('log(')">log</button>
-        <button class="function" onclick="appendValue(lastAnswer)">ANS</button>
+        <button class="function" onclick="appendValue('ANS')">ANS</button>
         <button class="function" id="toggleAngle" onclick="toggleAngleMode()">Rad</button>
         <button class="function" onclick="appendValue('mod')">mod</button>
         
         <!-- Original Function Buttons -->
-        <button class="function" onclick="appendValue('x^2')">x²</button>
+        <button class="function" onclick="appendValue('^2')">x²</button>
         <button class="function" onclick="appendValue('sqrt(')">√x</button>
-        <button class="function" onclick="appendValue('x^y')">xʸ</button>
+        <button class="function" onclick="appendValue('^')">xʸ</button>
         <button class="function" onclick="appendValue('10^')">10^x</button>
-        <!-- (mod button already provided above) -->
         
         <button class="function" onclick="appendValue('π')">π</button>
         <button class="function" onclick="appendValue('e')">e</button>
         <button class="function" onclick="appendValue('abs(')">|x|</button>
         <button class="function" onclick="appendValue('exp(')">exp</button>
-        <button class="function" onclick="appendValue('n!')">n!</button>
+        <button class="function" onclick="appendValue('!')">n!</button>
         
         <!-- Numeric & Operator Rows -->
         <button onclick="appendValue('7')">7</button>
@@ -194,36 +151,37 @@
         
         <button onclick="appendValue('0')">0</button>
         <button onclick="appendValue('.')">.</button>
-        <button class="wide operator" onclick="calculate()">=</button>
+        <button class="wide operator" onclick="processCalculation()">=</button>
         <button class="operator" onclick="appendValue('+')">+</button>
       </div>
     </div>
-        <!-- Instructions Panel -->
+    
+    <!-- Instructions Panel -->
     <div id="instructions">
       <h2>Calculator Instructions</h2>
       <h3>Memory Functions (MC, MR, M+, M-, MS)</h3>
       <p>
-        The memory functions enable you to store and manage intermediate results during calculations. Use MS to save the current display value into memory, M+ and M- to add or subtract the displayed number from memory, MR to recall the stored value, and MC to clear it completely. This feature facilitates complex multi-step computations.
+        The memory functions enable you to store and manage intermediate results during calculations. Use MS to save the current display value into memory, M+ and M- to add or subtract the displayed number from memory, MR to recall the stored value, and MC to clear it completely.
       </p>
       
       <h3>History Panel</h3>
       <p>
-        The History Panel automatically records every successful calculation by displaying the expression along with its result. By clicking any history item, you can reload that expression into the display for further modification or re-evaluation. This feature saves time by eliminating the need to retype complex expressions, allowing efficient reuse.
+        The History Panel records every successful calculation by displaying the expression along with its result. Click any history item to reload that expression into the display for further modification or re‐evaluation.
       </p>
       
       <h3>Trigonometric Functions & Angle Mode</h3>
       <p>
-        The trigonometric functions (sin, cos, tan) support both radian and degree measurements. You can toggle between these modes using the Rad/Deg button. When set to degree mode, the calculator converts degree inputs to radians for accurate calculations. This versatility is crucial for solving problems in various scientific and engineering contexts.
+        The trigonometric functions (sin, cos, tan) support both radian and degree measurements. Toggle between these modes using the Rad/Deg button. When in degree mode, the calculator converts degree inputs to radians for accurate computations.
       </p>
       
       <h3>Scientific Functions</h3>
       <p>
-        In addition to basic arithmetic, the calculator offers advanced scientific functions such as squaring (x²), power (xʸ), square root, logarithms (ln, log), exponential functions, absolute value, and factorial (n!). Each function includes robust error handling to ensure that invalid inputs are flagged, providing clear error messages for reliable computation in complex mathematical operations.
+        In addition to basic arithmetic, this calculator supports advanced functions such as squaring (x²), power (xʸ), square root, logarithms (ln, log), exponential functions, absolute value, and factorial (n!). The parser provides robust error handling so that invalid inputs are flagged immediately.
       </p>
       
       <h3>ANS Button & Keyboard Shortcuts</h3>
       <p>
-        The ANS button automatically inserts the result of your last computation into the current expression, saving you time retyping numbers. Moreover, the calculator accepts keyboard shortcuts: press Enter to compute the expression and Escape to clear the display. This dual-input system enhances efficiency and ensures seamless transitions between mouse and keyboard use.
+        The ANS button inserts the result of your last calculation into the current expression. You can also use keyboard shortcuts—press Enter to compute the expression and Escape to clear the display. This dual-input system ensures smooth transitions between mouse and keyboard use.
       </p>
     </div>
   </div>
@@ -234,54 +192,61 @@
     <div id="historyContent"></div>
   </div>
   
+  <!-- Custom JavaScript: Shunting-Yard Parser & Evaluator -->
   <script>
-    // Global variables
     const display = document.getElementById("display");
     let lastAnswer = 0;
     let memory = 0;
-    let useDegrees = false;  // false = radians, true = degrees
+    let useDegrees = false; // false = radians, true = degrees
     let history = [];
-    
+
     // Ensure display always has focus
     function focusDisplay() { display.focus(); }
     document.addEventListener("click", focusDisplay);
     focusDisplay();
-    
-    // Append value to display (string concatenation)
-    function appendValue(value) { 
-      display.value += value; 
+
+    // Append value to display
+    function appendValue(value) {
+      if (value === 'ANS') {
+        display.value += lastAnswer;
+      } else {
+        display.value += value;
+      }
     }
-    
     function clearDisplay() { display.value = ""; }
     function clearAll() { display.value = ""; }
     function backspace() { display.value = display.value.slice(0, -1); }
-    
-    // Keyboard support: Enter to calculate, Escape to clear all
+
+    // Keyboard support: Enter to calculate, Escape to clear
     display.addEventListener("keydown", function(event) {
       if (event.key === "Enter") {
         event.preventDefault();
-        calculate();
+        processCalculation();
       } else if (event.key === "Escape") {
         clearAll();
       }
     });
-    
-    // Custom scientific functions (with degrees conversion if needed)
-    function sin(x) { return useDegrees ? Math.sin(x * Math.PI / 180) : Math.sin(x); }
-    function cos(x) { return useDegrees ? Math.cos(x * Math.PI / 180) : Math.cos(x); }
-    function tan(x) { return useDegrees ? Math.tan(x * Math.PI / 180) : Math.tan(x); }
-    function ln(x) { return Math.log(x); }
-    function log(x) { return Math.log10 ? Math.log10(x) : Math.log(x) / Math.LN10; }
-    
-    // Factorial function with error checking (iterative implementation)
-    function factorial(n) {
-      n = Number(n);
-      if (n < 0 || Math.floor(n) !== n) {
-        throw new Error("Factorial is only defined for non-negative integers");
+
+    // --- Custom Expression Evaluation without eval() ---
+    // Token types: number, operator, function, parenthesis, constant.
+    // Operators: +, -, *, /, %, ^ ; unary minus is represented as 'u-'
+    // Functions: sin, cos, tan, ln, log, sqrt, abs, exp, factorial (handled as postfix operator '!')
+
+    // Tokenizer: converts an input string into an array of tokens.
+    function tokenize(expr) {
+      const tokens = [];
+      const regex = /\s*([0-9]*\.?[0-9]+|sin|cos|tan|ln|log|sqrt|abs|exp|π|e|ANS|mod|[+\-*/%^()!])\s*/gi;
+      let m;
+      let lastIndex = 0;
+      while ((m = regex.exec(expr)) !== null) {
+        if (m.index !== lastIndex) {
+          throw new Error("Invalid token near: " + expr.slice(lastIndex, m.index));
+        }
+        tokens.push(m[1]);
+        lastIndex = regex.lastIndex;
       }
-      let result = 1;
-      for (let i = 2; i <= n; i++) {
-        result *= i;
+      if (lastIndex !== expr.length) {
+        throw new Error("Invalid token at end of expression");
       }
-      return result;
+      return tokens;
     }
