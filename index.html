@@ -403,9 +403,15 @@
     }
 
     // Process calculation and update display/history.
+    // Process calculation:
+    // If the input expression contains an "=" anywhere, use the substring before the first "=".
     function processCalculation() {
       try {
-        const expression = display.value;
+        let expression = display.value.trim();
+        const eqIndex = expression.indexOf("=");
+        if (eqIndex !== -1) {
+          expression = expression.substring(0, eqIndex).trim();
+        }
         const result = evaluateExpression(expression);
         if (!isFinite(result) || isNaN(result)) { 
           throw new Error("Math Error");
@@ -414,11 +420,9 @@
         lastAnswer = result;
         display.value = result;
       } catch (error) {
-        // Display the error message for clarity.
         display.value = error.message;
       }
     }
-
     // History functions.
     function addToHistory(expr, result) {
       history.push({ expr, result });
