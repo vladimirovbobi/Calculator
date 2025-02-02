@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Enhanced Scientific Calculator</title>
   <style>
-    /* (Styling remains unchanged.) */
+    /* Styling remains unchanged. */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: "Segoe UI", sans-serif;
@@ -161,27 +161,27 @@
       <h2>Calculator Instructions</h2>
       <h3>Memory Functions (MC, MR, M+, M-, MS)</h3>
       <p>
-        The memory functions enable you to store and manage intermediate results during calculations. Use MS to save the current display value into memory, M+ and M- to add or subtract the displayed number from memory, MR to recall the stored value, and MC to clear it completely.
+        Use these functions to store, recall, add to, or subtract from memory. They’re designed to help with multi-step computations.
       </p>
       
       <h3>History Panel</h3>
       <p>
-        The History Panel records every successful calculation by displaying the expression along with its result. Click any history item to reload that expression into the display for further modification or re‐evaluation.
+        Every valid calculation is recorded here. Click a history item to reload the expression into the display for further editing.
       </p>
       
       <h3>Trigonometric Functions & Angle Mode</h3>
       <p>
-        The trigonometric functions (sin, cos, tan) support both radian and degree measurements. Toggle between these modes using the Rad/Deg button. When in degree mode, the calculator converts degree inputs to radians for accurate computations.
+        Functions like sin, cos, and tan work in both radians and degrees. Toggle using the Rad/Deg button.
       </p>
       
       <h3>Scientific Functions</h3>
       <p>
-        In addition to basic arithmetic, this calculator supports advanced functions such as squaring (x²), power (xʸ), square root, logarithms (ln, log), exponential functions, absolute value, and factorial (n!). The parser provides robust error handling so that invalid inputs are flagged immediately.
+        This calculator supports logarithms, exponentials, factorials, and more. Our evaluator includes rigorous error checking to ensure that only valid expressions are computed.
       </p>
       
       <h3>ANS Button & Keyboard Shortcuts</h3>
       <p>
-        The ANS button inserts the result of your last calculation into the current expression. You can also use keyboard shortcuts—press Enter to compute the expression and Escape to clear the display. This dual-input system ensures smooth transitions between mouse and keyboard use.
+        Use ANS to recall the last result, Enter to calculate, and Escape to clear the display.
       </p>
     </div>
   </div>
@@ -192,7 +192,7 @@
     <div id="historyContent"></div>
   </div>
   
-  <!-- Custom JavaScript: Shunting-Yard Parser & Evaluator -->
+  <!-- Custom JavaScript: Shunting-Yard Parser & Evaluator with Enhanced Error Handling -->
   <script>
     const display = document.getElementById("display");
     let lastAnswer = 0;
@@ -200,24 +200,20 @@
     let useDegrees = false; // false = radians, true = degrees
     let history = [];
 
-    // Ensure display always has focus
+    // Ensure display always has focus for accessibility.
     function focusDisplay() { display.focus(); }
     document.addEventListener("click", focusDisplay);
     focusDisplay();
 
-    // Append value to display
+    // Append value to display (handles ANS insertion).
     function appendValue(value) {
-      if (value === 'ANS') {
-        display.value += lastAnswer;
-      } else {
-        display.value += value;
-      }
+      display.value += (value === 'ANS') ? lastAnswer : value;
     }
     function clearDisplay() { display.value = ""; }
     function clearAll() { display.value = ""; }
     function backspace() { display.value = display.value.slice(0, -1); }
 
-    // Keyboard support: Enter to calculate, Escape to clear
+    // Keyboard support: Enter to calculate, Escape to clear display.
     display.addEventListener("keydown", function(event) {
       if (event.key === "Enter") {
         event.preventDefault();
@@ -227,14 +223,26 @@
       }
     });
 
-    // --- Custom Expression Evaluation without eval() ---
-    // Token types: number, operator, function, parenthesis, constant.
-    // Operators: +, -, *, /, %, ^ ; unary minus is represented as 'u-'
-    // Functions: sin, cos, tan, ln, log, sqrt, abs, exp, factorial (handled as postfix operator '!')
+    // --- Enhanced Expression Evaluator Without Using eval() ---
+    // Supports numbers, operators (both unary and binary), functions, and constants.
+    // Robust error handling is in place for all stages of tokenization, parsing, and evaluation.
 
-    // Tokenizer: converts an input string into an array of tokens.
+    // Before processing, remove any trailing "=" character.
+    function preprocessInput(expr) {
+      expr = expr.trim();
+      if (expr.endsWith("=")) {
+        expr = expr.slice(0, -1);
+      }
+      return expr;
+    }
+
+    // Tokenizer: converts an input string to an array of tokens.
     function tokenize(expr) {
+      if (!expr || expr.trim() === "") {
+        throw new Error("Empty expression");
+      }
       const tokens = [];
+      // Updated regex strictly matches allowed tokens.
       const regex = /\s*([0-9]*\.?[0-9]+|sin|cos|tan|ln|log|sqrt|abs|exp|π|e|ANS|mod|[+\-*/%^()!])\s*/gi;
       let m;
       let lastIndex = 0;
@@ -251,20 +259,19 @@
       return tokens;
     }
 
-    // Handle constants and functions adjustments.
+    // Normalize tokens: replace constants and mark unary minus.
     function normalizeTokens(tokens) {
       const output = [];
       for (let i = 0; i < tokens.length; i++) {
         let token = tokens[i];
-        // Replace constants
+        // Replace constants.
         if (token === 'π') token = Math.PI.toString();
         if (token === 'e') token = Math.E.toString();
 
-        // Determine if '-' is unary. If token is '-' and either it is at the beginning,
-        // or the previous token is an operator or a left parenthesis, then mark it as unary.
+        // Mark unary minus when at the start or after an operator or left parenthesis.
         if (token === '-') {
-          if (i === 0 || ['+', '-', '*', '/', '%', '^', '(', 'mod'].includes(tokens[i-1])) {
-            token = 'u-'; // unary minus
+          if (i === 0 || ['+', '-', '*', '/', '%', '^', '(', 'mod'].includes(tokens[i - 1])) {
+            token = 'u-';
           }
         }
         output.push(token);
@@ -272,32 +279,31 @@
       return output;
     }
 
-    // Operator properties: precedence and associativity.
+    // Operator definitions.
     const operators = {
-      '+': { precedence: 2, associativity: 'Left', func: (a,b) => a + b },
-      '-': { precedence: 2, associativity: 'Left', func: (a,b) => a - b },
-      '*': { precedence: 3, associativity: 'Left', func: (a,b) => a * b },
-      '/': { precedence: 3, associativity: 'Left', func: (a,b) => {
+      '+': { precedence: 2, associativity: 'Left', func: (a, b) => a + b },
+      '-': { precedence: 2, associativity: 'Left', func: (a, b) => a - b },
+      '*': { precedence: 3, associativity: 'Left', func: (a, b) => a * b },
+      '/': { precedence: 3, associativity: 'Left', func: (a, b) => {
           if (b === 0) throw new Error("Division by zero");
           return a / b;
         }
       },
-      '%': { precedence: 3, associativity: 'Left', func: (a,b) => a % b },
-      '^': { precedence: 4, associativity: 'Right', func: (a,b) => Math.pow(a, b) },
-      'u-': { precedence: 5, associativity: 'Right', func: (a) => -a },
-      // Postfix factorial operator; handled separately.
+      '%': { precedence: 3, associativity: 'Left', func: (a, b) => a % b },
+      '^': { precedence: 4, associativity: 'Right', func: (a, b) => Math.pow(a, b) },
+      'u-': { precedence: 5, associativity: 'Right', func: (a) => -a }
     };
 
-    // Shunting-Yard Algorithm: convert infix tokens to Reverse Polish Notation (RPN)
+    // Shunting-Yard: convert infix tokens to Reverse Polish Notation (RPN).
     function infixToRPN(tokens) {
       const outputQueue = [];
       const operatorStack = [];
       for (let token of tokens) {
-        if (!isNaN(token)) { // number
+        if (!isNaN(token)) {
           outputQueue.push(parseFloat(token));
         } else if (["sin", "cos", "tan", "ln", "log", "sqrt", "abs", "exp"].includes(token)) {
           operatorStack.push(token);
-        } else if (token === '!') { // factorial as postfix operator
+        } else if (token === '!') { // Postfix factorial operator.
           outputQueue.push(token);
         } else if (token in operators) {
           while (operatorStack.length) {
@@ -314,12 +320,17 @@
         } else if (token === '(') {
           operatorStack.push(token);
         } else if (token === ')') {
-          while (operatorStack.length && operatorStack[operatorStack.length - 1] !== '(') {
-            outputQueue.push(operatorStack.pop());
+          let foundLeftParen = false;
+          while (operatorStack.length) {
+            const op = operatorStack.pop();
+            if (op === '(') {
+              foundLeftParen = true;
+              break;
+            }
+            outputQueue.push(op);
           }
-          if (operatorStack.length === 0) throw new Error("Mismatched parentheses");
-          operatorStack.pop(); // remove '('
-          // If there is a function on top, pop it to output.
+          if (!foundLeftParen) throw new Error("Mismatched parentheses");
+          // If a function is on top, pop it.
           if (operatorStack.length && ["sin", "cos", "tan", "ln", "log", "sqrt", "abs", "exp"].includes(operatorStack[operatorStack.length - 1])) {
             outputQueue.push(operatorStack.pop());
           }
@@ -334,3 +345,134 @@
       }
       return outputQueue;
     }
+
+    // Evaluate the RPN expression.
+    function evaluateRPN(rpn) {
+      const stack = [];
+      for (let token of rpn) {
+        if (typeof token === "number") {
+          stack.push(token);
+        } else if (token in operators) {
+          if (token === 'u-') {
+            if (stack.length < 1) throw new Error("Insufficient operands for unary operator");
+            const a = stack.pop();
+            stack.push(operators[token].func(a));
+          } else {
+            if (stack.length < 2) throw new Error("Insufficient operands for operator '" + token + "'");
+            const b = stack.pop();
+            const a = stack.pop();
+            stack.push(operators[token].func(a, b));
+          }
+        } else if (["sin", "cos", "tan", "ln", "log", "sqrt", "abs", "exp"].includes(token)) {
+          if (stack.length < 1) throw new Error("Insufficient operands for function '" + token + "'");
+          let a = stack.pop();
+          // For trigonometric functions, convert degrees if necessary.
+          if (["sin", "cos", "tan"].includes(token) && useDegrees) {
+            a = a * Math.PI / 180;
+          }
+          let result;
+          switch(token) {
+            case "sin": result = Math.sin(a); break;
+            case "cos": result = Math.cos(a); break;
+            case "tan": result = Math.tan(a); break;
+            case "ln":  result = Math.log(a); break;
+            case "log": result = (Math.log10 ? Math.log10(a) : Math.log(a)/Math.LN10); break;
+            case "sqrt": result = Math.sqrt(a); break;
+            case "abs": result = Math.abs(a); break;
+            case "exp": result = Math.exp(a); break;
+          }
+          stack.push(result);
+        } else if (token === '!') {
+          if (stack.length < 1) throw new Error("Insufficient operands for factorial");
+          const a = stack.pop();
+          if (a < 0 || Math.floor(a) !== a) throw new Error("Factorial is only defined for non-negative integers");
+          let fact = 1;
+          for (let i = 2; i <= a; i++) {
+            fact *= i;
+          }
+          stack.push(fact);
+        } else {
+          throw new Error("Unknown token in evaluation: " + token);
+        }
+      }
+      if (stack.length !== 1) throw new Error("Invalid expression structure");
+      return stack[0];
+    }
+
+    // Evaluate an expression string by tokenizing, normalizing, converting to RPN, then evaluating.
+    function evaluateExpression(expr) {
+      try {
+        expr = preprocessInput(expr);
+        const rawTokens = tokenize(expr);
+        const tokens = normalizeTokens(rawTokens);
+        const rpn = infixToRPN(tokens);
+        return evaluateRPN(rpn);
+      } catch (err) {
+        throw new Error("Error evaluating expression: " + err.message);
+      }
+    }
+
+    // Process the calculation: evaluate the expression and update the display and history.
+    function processCalculation() {
+      try {
+        const expression = display.value;
+        const result = evaluateExpression(expression);
+        if (!isFinite(result) || isNaN(result)) { 
+          throw new Error("Math Error");
+        }
+        addToHistory(expression, result);
+        lastAnswer = result;
+        display.value = result;
+      } catch (error) {
+        display.value = error.message;
+      }
+    }
+
+    // History functions.
+    function addToHistory(expr, result) {
+      history.push({ expr, result });
+      updateHistoryDisplay();
+    }
+    function updateHistoryDisplay() {
+      const historyContent = document.getElementById("historyContent");
+      historyContent.innerHTML = history.map(item => {
+        const safeExpr = item.expr.replace(/'/g, "\\'");
+        return `<div class="history-item" onclick="loadHistory('${safeExpr}')">${item.expr} = ${item.result}</div>`;
+      }).join('');
+    }
+    function loadHistory(expr) {
+      display.value = expr;
+      focusDisplay();
+    }
+
+    // Memory functions with robust error checking.
+    function memoryClear() { memory = 0; }
+    function memoryRecall() { display.value += memory; }
+    function memoryAdd() {
+      try {
+        const value = evaluateExpression(display.value);
+        if (isFinite(value)) { memory += value; }
+      } catch(e) { /* gracefully ignore invalid input */ }
+    }
+    function memorySubtract() {
+      try {
+        const value = evaluateExpression(display.value);
+        if (isFinite(value)) { memory -= value; }
+      } catch(e) { /* gracefully ignore invalid input */ }
+    }
+    function memoryStore() {
+      try {
+        const value = evaluateExpression(display.value);
+        if (isFinite(value)) { memory = value; }
+      } catch(e) { /* gracefully ignore invalid input */ }
+    }
+
+    // Toggle between Radians and Degrees for trigonometric functions.
+    function toggleAngleMode() {
+      useDegrees = !useDegrees;
+      document.getElementById("toggleAngle").textContent = useDegrees ? "Deg" : "Rad";
+    }
+
+  </script>
+</body>
+</html>
