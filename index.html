@@ -464,32 +464,6 @@
       document.getElementById("toggleAngle").textContent = useDegrees ? "Deg" : "Rad";
     }
 
-    // --- QA Testing Experience ---
-    // The following block (currently commented out) was used during QA testing.
-    // It runs a suite of unit tests to verify correct evaluation and robust error handling.
-    /*
-    function runUnitTests() {
-      const testExpressions = [
-        { expr: "-5.78+-(4-2.23)+sin(0)*cos(1)/(1+tan(2*ln(-3+2*(1.23+99.111)))", expectError: false },
-        { expr: "((2+3/)(4/-", expectError: true },
-        { expr: "2+3", expectError: false },
-        { expr: "5!+3", expectError: false },
-        { expr: "sqrt(16)+log(100)", expectError: false }
-      ];
-      testExpressions.forEach(test => {
-        try {
-          const res = evaluateExpression(test.expr);
-          console.log(`Test: ${test.expr} = ${res}`);
-          if (test.expectError) console.error("Expected an error but got a result.");
-        } catch(e) {
-          console.log(`Test: ${test.expr} threw error: ${e.message}`);
-          if (!test.expectError) console.error("Unexpected error.");
-        }
-      });
-    }
-    // Uncomment the following line to run tests on load.
-    // runUnitTests();
-    */
   </script>
 </body>
 </html>
