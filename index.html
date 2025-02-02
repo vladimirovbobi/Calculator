@@ -161,22 +161,22 @@
       <h2>Calculator Instructions</h2>
       <h3>Memory Functions (MC, MR, M+, M-, MS)</h3>
       <p>
-        Use these functions to store, recall, add to, or subtract from memory. They’re designed to help with multi-step computations.
+        Store, recall, add to, or subtract from memory. These functions are designed to help with complex, multi-step computations.
       </p>
       
       <h3>History Panel</h3>
       <p>
-        Every valid calculation is recorded here. Click a history item to reload the expression into the display for further editing.
+        Every valid calculation is recorded here. Click on any history item to reload it into the display for further editing.
       </p>
       
       <h3>Trigonometric Functions & Angle Mode</h3>
       <p>
-        Functions like sin, cos, and tan work in both radians and degrees. Toggle using the Rad/Deg button.
+        Functions such as sin, cos, and tan work in both radians and degrees. Use the Rad/Deg toggle to switch modes.
       </p>
       
       <h3>Scientific Functions</h3>
       <p>
-        This calculator supports logarithms, exponentials, factorials, and more. Our evaluator includes rigorous error checking to ensure that only valid expressions are computed.
+        Beyond basic arithmetic, enjoy advanced features like logarithms, exponentials, factorials, and more. Our evaluator performs rigorous error checking to ensure only valid expressions are calculated.
       </p>
       
       <h3>ANS Button & Keyboard Shortcuts</h3>
@@ -192,7 +192,7 @@
     <div id="historyContent"></div>
   </div>
   
-  <!-- Custom JavaScript: Shunting-Yard Parser & Evaluator with Enhanced Error Handling -->
+  <!-- Custom JavaScript: Shunting-Yard Parser & Evaluator with Enhanced QA -->
   <script>
     const display = document.getElementById("display");
     let lastAnswer = 0;
@@ -200,12 +200,12 @@
     let useDegrees = false; // false = radians, true = degrees
     let history = [];
 
-    // Ensure display always has focus for accessibility.
+    // Always focus on display for accessibility
     function focusDisplay() { display.focus(); }
     document.addEventListener("click", focusDisplay);
     focusDisplay();
 
-    // Append value to display (handles ANS insertion).
+    // Append value to display (with ANS support)
     function appendValue(value) {
       display.value += (value === 'ANS') ? lastAnswer : value;
     }
@@ -213,7 +213,7 @@
     function clearAll() { display.value = ""; }
     function backspace() { display.value = display.value.slice(0, -1); }
 
-    // Keyboard support: Enter to calculate, Escape to clear display.
+    // Keyboard support: Enter to calculate, Escape to clear display
     display.addEventListener("keydown", function(event) {
       if (event.key === "Enter") {
         event.preventDefault();
@@ -223,26 +223,17 @@
       }
     });
 
-    // --- Enhanced Expression Evaluator Without Using eval() ---
-    // Supports numbers, operators (both unary and binary), functions, and constants.
-    // Robust error handling is in place for all stages of tokenization, parsing, and evaluation.
+    // --- Enhanced Expression Evaluator without eval() ---
+    // Supports numbers, operators, functions, and constants.
+    // Robust error handling has been added to ensure even very odd inputs are flagged.
 
-    // Before processing, remove any trailing "=" character.
-    function preprocessInput(expr) {
-      expr = expr.trim();
-      if (expr.endsWith("=")) {
-        expr = expr.slice(0, -1);
-      }
-      return expr;
-    }
-
-    // Tokenizer: converts an input string to an array of tokens.
+    // Tokenizer: converts input string to tokens.
     function tokenize(expr) {
       if (!expr || expr.trim() === "") {
         throw new Error("Empty expression");
       }
       const tokens = [];
-      // Updated regex strictly matches allowed tokens.
+      // Updated regex: now strictly matches allowed tokens
       const regex = /\s*([0-9]*\.?[0-9]+|sin|cos|tan|ln|log|sqrt|abs|exp|π|e|ANS|mod|[+\-*/%^()!])\s*/gi;
       let m;
       let lastIndex = 0;
@@ -264,11 +255,11 @@
       const output = [];
       for (let i = 0; i < tokens.length; i++) {
         let token = tokens[i];
-        // Replace constants.
+        // Replace constants
         if (token === 'π') token = Math.PI.toString();
         if (token === 'e') token = Math.E.toString();
 
-        // Mark unary minus when at the start or after an operator or left parenthesis.
+        // Mark unary minus when at the start or after an operator/left parenthesis.
         if (token === '-') {
           if (i === 0 || ['+', '-', '*', '/', '%', '^', '(', 'mod'].includes(tokens[i - 1])) {
             token = 'u-';
@@ -279,7 +270,7 @@
       return output;
     }
 
-    // Operator definitions.
+    // Operator definitions
     const operators = {
       '+': { precedence: 2, associativity: 'Left', func: (a, b) => a + b },
       '-': { precedence: 2, associativity: 'Left', func: (a, b) => a - b },
@@ -294,7 +285,7 @@
       'u-': { precedence: 5, associativity: 'Right', func: (a) => -a }
     };
 
-    // Shunting-Yard: convert infix tokens to Reverse Polish Notation (RPN).
+    // Shunting-Yard: Convert infix tokens to RPN.
     function infixToRPN(tokens) {
       const outputQueue = [];
       const operatorStack = [];
@@ -346,7 +337,7 @@
       return outputQueue;
     }
 
-    // Evaluate the RPN expression.
+    // Evaluate RPN expression.
     function evaluateRPN(rpn) {
       const stack = [];
       for (let token of rpn) {
@@ -366,7 +357,7 @@
         } else if (["sin", "cos", "tan", "ln", "log", "sqrt", "abs", "exp"].includes(token)) {
           if (stack.length < 1) throw new Error("Insufficient operands for function '" + token + "'");
           let a = stack.pop();
-          // For trigonometric functions, convert degrees if necessary.
+          // Convert degrees if needed.
           if (["sin", "cos", "tan"].includes(token) && useDegrees) {
             a = a * Math.PI / 180;
           }
@@ -399,10 +390,9 @@
       return stack[0];
     }
 
-    // Evaluate an expression string by tokenizing, normalizing, converting to RPN, then evaluating.
+    // Main evaluator: tokenize, normalize, convert to RPN, and evaluate.
     function evaluateExpression(expr) {
       try {
-        expr = preprocessInput(expr);
         const rawTokens = tokenize(expr);
         const tokens = normalizeTokens(rawTokens);
         const rpn = infixToRPN(tokens);
@@ -412,7 +402,7 @@
       }
     }
 
-    // Process the calculation: evaluate the expression and update the display and history.
+    // Process calculation and update display/history.
     function processCalculation() {
       try {
         const expression = display.value;
@@ -424,6 +414,7 @@
         lastAnswer = result;
         display.value = result;
       } catch (error) {
+        // Display the error message for clarity.
         display.value = error.message;
       }
     }
@@ -467,12 +458,38 @@
       } catch(e) { /* gracefully ignore invalid input */ }
     }
 
-    // Toggle between Radians and Degrees for trigonometric functions.
+    // Toggle angle mode.
     function toggleAngleMode() {
       useDegrees = !useDegrees;
       document.getElementById("toggleAngle").textContent = useDegrees ? "Deg" : "Rad";
     }
 
+    // --- QA Testing Experience ---
+    // The following block (currently commented out) was used during QA testing.
+    // It runs a suite of unit tests to verify correct evaluation and robust error handling.
+    /*
+    function runUnitTests() {
+      const testExpressions = [
+        { expr: "-5.78+-(4-2.23)+sin(0)*cos(1)/(1+tan(2*ln(-3+2*(1.23+99.111)))", expectError: false },
+        { expr: "((2+3/)(4/-", expectError: true },
+        { expr: "2+3", expectError: false },
+        { expr: "5!+3", expectError: false },
+        { expr: "sqrt(16)+log(100)", expectError: false }
+      ];
+      testExpressions.forEach(test => {
+        try {
+          const res = evaluateExpression(test.expr);
+          console.log(`Test: ${test.expr} = ${res}`);
+          if (test.expectError) console.error("Expected an error but got a result.");
+        } catch(e) {
+          console.log(`Test: ${test.expr} threw error: ${e.message}`);
+          if (!test.expectError) console.error("Unexpected error.");
+        }
+      });
+    }
+    // Uncomment the following line to run tests on load.
+    // runUnitTests();
+    */
   </script>
 </body>
 </html>
