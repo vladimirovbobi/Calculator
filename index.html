@@ -250,3 +250,87 @@
       }
       return tokens;
     }
+
+    // Handle constants and functions adjustments.
+    function normalizeTokens(tokens) {
+      const output = [];
+      for (let i = 0; i < tokens.length; i++) {
+        let token = tokens[i];
+        // Replace constants
+        if (token === 'π') token = Math.PI.toString();
+        if (token === 'e') token = Math.E.toString();
+
+        // Determine if '-' is unary. If token is '-' and either it is at the beginning,
+        // or the previous token is an operator or a left parenthesis, then mark it as unary.
+        if (token === '-') {
+          if (i === 0 || ['+', '-', '*', '/', '%', '^', '(', 'mod'].includes(tokens[i-1])) {
+            token = 'u-'; // unary minus
+          }
+        }
+        output.push(token);
+      }
+      return output;
+    }
+
+    // Operator properties: precedence and associativity.
+    const operators = {
+      '+': { precedence: 2, associativity: 'Left', func: (a,b) => a + b },
+      '-': { precedence: 2, associativity: 'Left', func: (a,b) => a - b },
+      '*': { precedence: 3, associativity: 'Left', func: (a,b) => a * b },
+      '/': { precedence: 3, associativity: 'Left', func: (a,b) => {
+          if (b === 0) throw new Error("Division by zero");
+          return a / b;
+        }
+      },
+      '%': { precedence: 3, associativity: 'Left', func: (a,b) => a % b },
+      '^': { precedence: 4, associativity: 'Right', func: (a,b) => Math.pow(a, b) },
+      'u-': { precedence: 5, associativity: 'Right', func: (a) => -a },
+      // Postfix factorial operator; handled separately.
+    };
+
+    // Shunting-Yard Algorithm: convert infix tokens to Reverse Polish Notation (RPN)
+    function infixToRPN(tokens) {
+      const outputQueue = [];
+      const operatorStack = [];
+      for (let token of tokens) {
+        if (!isNaN(token)) { // number
+          outputQueue.push(parseFloat(token));
+        } else if (["sin", "cos", "tan", "ln", "log", "sqrt", "abs", "exp"].includes(token)) {
+          operatorStack.push(token);
+        } else if (token === '!') { // factorial as postfix operator
+          outputQueue.push(token);
+        } else if (token in operators) {
+          while (operatorStack.length) {
+            const top = operatorStack[operatorStack.length - 1];
+            if (top in operators &&
+                ((operators[token].associativity === 'Left' && operators[token].precedence <= operators[top].precedence) ||
+                 (operators[token].associativity === 'Right' && operators[token].precedence < operators[top].precedence))) {
+              outputQueue.push(operatorStack.pop());
+            } else {
+              break;
+            }
+          }
+          operatorStack.push(token);
+        } else if (token === '(') {
+          operatorStack.push(token);
+        } else if (token === ')') {
+          while (operatorStack.length && operatorStack[operatorStack.length - 1] !== '(') {
+            outputQueue.push(operatorStack.pop());
+          }
+          if (operatorStack.length === 0) throw new Error("Mismatched parentheses");
+          operatorStack.pop(); // remove '('
+          // If there is a function on top, pop it to output.
+          if (operatorStack.length && ["sin", "cos", "tan", "ln", "log", "sqrt", "abs", "exp"].includes(operatorStack[operatorStack.length - 1])) {
+            outputQueue.push(operatorStack.pop());
+          }
+        } else {
+          throw new Error("Unknown token: " + token);
+        }
+      }
+      while (operatorStack.length) {
+        const op = operatorStack.pop();
+        if (op === '(' || op === ')') throw new Error("Mismatched parentheses");
+        outputQueue.push(op);
+      }
+      return outputQueue;
+    }
