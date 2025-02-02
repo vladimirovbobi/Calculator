@@ -198,4 +198,90 @@
         <button class="operator" onclick="appendValue('+')">+</button>
       </div>
     </div>
+        <!-- Instructions Panel -->
+    <div id="instructions">
+      <h2>Calculator Instructions</h2>
+      <h3>Memory Functions (MC, MR, M+, M-, MS)</h3>
+      <p>
+        The memory functions enable you to store and manage intermediate results during calculations. Use MS to save the current display value into memory, M+ and M- to add or subtract the displayed number from memory, MR to recall the stored value, and MC to clear it completely. This feature facilitates complex multi-step computations.
+      </p>
+      
+      <h3>History Panel</h3>
+      <p>
+        The History Panel automatically records every successful calculation by displaying the expression along with its result. By clicking any history item, you can reload that expression into the display for further modification or re-evaluation. This feature saves time by eliminating the need to retype complex expressions, allowing efficient reuse.
+      </p>
+      
+      <h3>Trigonometric Functions & Angle Mode</h3>
+      <p>
+        The trigonometric functions (sin, cos, tan) support both radian and degree measurements. You can toggle between these modes using the Rad/Deg button. When set to degree mode, the calculator converts degree inputs to radians for accurate calculations. This versatility is crucial for solving problems in various scientific and engineering contexts.
+      </p>
+      
+      <h3>Scientific Functions</h3>
+      <p>
+        In addition to basic arithmetic, the calculator offers advanced scientific functions such as squaring (x²), power (xʸ), square root, logarithms (ln, log), exponential functions, absolute value, and factorial (n!). Each function includes robust error handling to ensure that invalid inputs are flagged, providing clear error messages for reliable computation in complex mathematical operations.
+      </p>
+      
+      <h3>ANS Button & Keyboard Shortcuts</h3>
+      <p>
+        The ANS button automatically inserts the result of your last computation into the current expression, saving you time retyping numbers. Moreover, the calculator accepts keyboard shortcuts: press Enter to compute the expression and Escape to clear the display. This dual-input system enhances efficiency and ensures seamless transitions between mouse and keyboard use.
+      </p>
+    </div>
+  </div>
+  
+  <!-- History Panel -->
+  <div id="history">
+    <h3>History</h3>
+    <div id="historyContent"></div>
+  </div>
+  
+  <script>
+    // Global variables
+    const display = document.getElementById("display");
+    let lastAnswer = 0;
+    let memory = 0;
+    let useDegrees = false;  // false = radians, true = degrees
+    let history = [];
     
+    // Ensure display always has focus
+    function focusDisplay() { display.focus(); }
+    document.addEventListener("click", focusDisplay);
+    focusDisplay();
+    
+    // Append value to display (string concatenation)
+    function appendValue(value) { 
+      display.value += value; 
+    }
+    
+    function clearDisplay() { display.value = ""; }
+    function clearAll() { display.value = ""; }
+    function backspace() { display.value = display.value.slice(0, -1); }
+    
+    // Keyboard support: Enter to calculate, Escape to clear all
+    display.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        calculate();
+      } else if (event.key === "Escape") {
+        clearAll();
+      }
+    });
+    
+    // Custom scientific functions (with degrees conversion if needed)
+    function sin(x) { return useDegrees ? Math.sin(x * Math.PI / 180) : Math.sin(x); }
+    function cos(x) { return useDegrees ? Math.cos(x * Math.PI / 180) : Math.cos(x); }
+    function tan(x) { return useDegrees ? Math.tan(x * Math.PI / 180) : Math.tan(x); }
+    function ln(x) { return Math.log(x); }
+    function log(x) { return Math.log10 ? Math.log10(x) : Math.log(x) / Math.LN10; }
+    
+    // Factorial function with error checking (iterative implementation)
+    function factorial(n) {
+      n = Number(n);
+      if (n < 0 || Math.floor(n) !== n) {
+        throw new Error("Factorial is only defined for non-negative integers");
+      }
+      let result = 1;
+      for (let i = 2; i <= n; i++) {
+        result *= i;
+      }
+      return result;
+    }
